@@ -28,15 +28,17 @@ The Temporal gRPC port (`7233`) is **not** published to the host. Workers and cl
 
 3. **Deploy the stack.** Coolify will build/pull images and start all four services on a shared Docker network.
 
-4. **Assign a domain to `temporal-ui`:**
-   - In Coolify, open the `temporal-ui` service.
-   - Add a domain (e.g. `temporal.example.com`).
-   - Map it to **container port `8080`** (not host port — Coolify attaches to the container network).
+4. **Assign a domain to `temporal-ui` only** (not `temporal`, not `postgres`, not `admin-tools`):
+   - In Coolify, open the **`temporal-ui`** service (not `temporal`).
+   - Click **Generate Domain** or set your domain manually.
+   - Set **port to `8080`**.
+   - **Remove any domain** from the `temporal` service if Coolify assigned one — gRPC must stay internal.
 
-5. **Update CORS** — set `TEMPORAL_CORS_ORIGINS` to your Coolify domain, e.g.:
+5. **Update CORS** — set `TEMPORAL_CORS_ORIGINS` to your UI domain, e.g.:
    ```
-   TEMPORAL_CORS_ORIGINS=https://temporal.example.com
+   TEMPORAL_CORS_ORIGINS=http://dgx8o3t4ee6z5lqsui4jp6mq.100.85.235.105.sslip.io
    ```
+   (use `https://...` if Coolify terminates TLS)
 
 6. **Redeploy** after changing env vars.
 
@@ -265,6 +267,21 @@ If you publish this repository (GitHub, GitLab, etc.):
 - The [`.gitignore`](.gitignore) in this repo excludes `.env` by default; verify it is in place before your first push.
 
 ## Troubleshooting
+
+### UI domain shows blank page / nothing loads / 404
+
+Coolify often assigns domains to the wrong compose service. Check the generated compose:
+
+- **`temporal-ui` must have Traefik labels** and `traefik.http.services.temporal-ui.loadbalancer.server.port=8080`
+- **`temporal` must NOT have a public domain** — it speaks gRPC (7233), not HTTP. A browser cannot load it.
+
+**Fix in Coolify:**
+
+1. Remove the domain from the **`temporal`** service.
+2. Assign the domain to **`temporal-ui`** with port **8080** (use "Generate Domain" on that service).
+3. Confirm **`temporal-ui` container is running** — it waits for `temporal` to become healthy first. Check logs if it never starts.
+4. Set `TEMPORAL_CORS_ORIGINS` to your UI URL.
+5. Redeploy after pulling the latest compose (includes `traefik.enable=false` on internal services).
 
 ### `development-sql.yaml: permission denied` or `no such file or directory`
 
