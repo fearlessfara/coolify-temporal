@@ -8,6 +8,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-temporal}
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
     networks:
       - temporal-network
     # INTERNAL ONLY: PostgreSQL (5432) — not published to the host.
@@ -32,10 +33,9 @@ services:
       POSTGRES_PWD: ${POSTGRES_PASSWORD:-change-me-strong-password}
       DBNAME: ${POSTGRES_DB:-temporal}
       VISIBILITY_DBNAME: temporal_visibility
-      SKIP_DB_CREATE: ${SKIP_DB_CREATE:-false}
-      DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/development-sql.yaml
-    volumes:
-      - ./dynamicconfig:/etc/temporal/config/dynamicconfig
+      SKIP_DB_CREATE: ${SKIP_DB_CREATE:-true}
+    # No dynamic config mount — avoids Coolify permission issues on bind mounts.
+    # Temporal runs with built-in defaults (suitable for self-hosted single-node).
     # INTERNAL ONLY: Temporal gRPC frontend (7233) — never publish to the host.
     # Workers and clients on the same Docker network reach this via temporal:7233.
     expose:

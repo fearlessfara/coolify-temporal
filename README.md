@@ -266,13 +266,25 @@ If you publish this repository (GitHub, GitLab, etc.):
 
 ## Troubleshooting
 
-### `development-sql.yaml: no such file or directory`
+### `development-sql.yaml: permission denied` or `no such file or directory`
 
-The `temporal` service mounts [`dynamicconfig/development-sql.yaml`](dynamicconfig/development-sql.yaml) into the container. Ensure Coolify deploys the full repository (including the `dynamicconfig/` folder), not just `docker-compose.yml`.
+This stack no longer mounts dynamic config files (Coolify bind mounts often cause permission errors). Redeploy the latest `main` branch.
 
 ### `database "temporal_visibility" already exists` (Postgres logs)
 
-Harmless on restarts after the first deploy — auto-setup tries to create databases that already exist. Once Temporal starts successfully, you can set `SKIP_DB_CREATE=true` in Coolify to silence this on future restarts.
+The stack uses `SKIP_DB_CREATE=true` by default so Temporal does not re-create databases on every restart. The `temporal_visibility` database is created once by [`postgres/init/01-create-visibility-db.sql`](postgres/init/01-create-visibility-db.sql) when the Postgres volume is first initialized.
+
+If you already have an existing Postgres volume from a prior failed deploy, those errors are harmless — the database already exists. Redeploy with the latest compose file to stop the create loop.
+
+### Existing Postgres volume missing `temporal_visibility`
+
+If you deployed before the init script was added and the visibility database was never created, run once:
+
+```bash
+docker compose exec postgres psql -U temporal -c 'CREATE DATABASE temporal_visibility;'
+```
+
+Then redeploy.
 
 ## Quick start (local)
 
