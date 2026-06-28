@@ -67,7 +67,7 @@ services:
       - traefik.http.services.temporal-ui.loadbalancer.server.port=8080
     # PUBLIC via Coolify/Traefik: assign your domain to THIS service only, port 8080.
     # Coolify often misses the port when only `expose` is set — the label above fixes 404/blank pages.
-    ports:
+    expose:
       - "8080"
     networks:
       - temporal-network
