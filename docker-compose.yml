@@ -3,23 +3,23 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-temporal}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-strong-password}
+      POSTGRES_DB: ${POSTGRES_DB:-temporal}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - temporal-network
     # INTERNAL ONLY: PostgreSQL (5432) — not published to the host.
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-temporal} -d ${POSTGRES_DB:-temporal}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
 
   temporal:
-    image: temporalio/auto-setup:${TEMPORAL_VERSION}
+    image: temporalio/auto-setup:${TEMPORAL_VERSION:-1.25.2}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -28,9 +28,9 @@ services:
       DB: postgres12
       DB_PORT: 5432
       POSTGRES_SEEDS: postgres
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PWD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-temporal}
+      POSTGRES_PWD: ${POSTGRES_PASSWORD:-change-me-strong-password}
+      POSTGRES_DB: ${POSTGRES_DB:-temporal}
       DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/development-sql.yaml
     # INTERNAL ONLY: Temporal gRPC frontend (7233) — never publish to the host.
     # Workers and clients on the same Docker network reach this via temporal:7233.
@@ -46,7 +46,7 @@ services:
       start_period: 60s
 
   temporal-ui:
-    image: temporalio/ui:${TEMPORAL_UI_VERSION}
+    image: temporalio/ui:${TEMPORAL_UI_VERSION:-2.32.0}
     restart: unless-stopped
     depends_on:
       temporal:
@@ -68,7 +68,7 @@ services:
       start_period: 30s
 
   temporal-admin-tools:
-    image: temporalio/admin-tools:${TEMPORAL_VERSION}
+    image: temporalio/admin-tools:${TEMPORAL_VERSION:-1.25.2}
     restart: unless-stopped
     depends_on:
       temporal:

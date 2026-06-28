@@ -24,7 +24,7 @@ The Temporal gRPC port (`7233`) is **not** published to the host. Workers and cl
 
 1. **Create a new resource** in Coolify → **Docker Compose** → point to this repository (or paste the compose file).
 
-2. **Set environment variables** in Coolify using [`.env.example`](.env.example) as a reference. Copy values into Coolify's env UI — do not commit a real `.env` file.
+2. **Set environment variables** in Coolify using [`.env.example`](.env.example) as a reference. The compose file includes defaults for image tags and Postgres settings, so a minimal deploy works without any env vars — but you **should** set at least `POSTGRES_PASSWORD` (and `TEMPORAL_CORS_ORIGINS` once you assign a domain).
 
 3. **Deploy the stack.** Coolify will build/pull images and start all four services on a shared Docker network.
 
