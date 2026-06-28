@@ -47,8 +47,8 @@ The Temporal gRPC port (`7233`) is **not** published to the host. Workers and cl
 - `POSTGRES_USER` — PostgreSQL username (default: `temporal`)
 - `POSTGRES_PASSWORD` — PostgreSQL password (**change this**)
 - `POSTGRES_DB` — PostgreSQL database name (default: `temporal`)
-- `TEMPORAL_VERSION` — Tag for `temporalio/auto-setup` and `temporalio/admin-tools` (default: `1.25.2`)
-- `TEMPORAL_UI_VERSION` — Tag for `temporalio/ui` (default: `2.32.0`)
+- `TEMPORAL_VERSION` — Tag for `temporalio/auto-setup` and `temporalio/admin-tools` (default: `1.29.6`). Must exist on **both** images — their tag sets differ; see [Docker Hub](https://hub.docker.com/r/temporalio/auto-setup/tags).
+- `TEMPORAL_UI_VERSION` — Tag for `temporalio/ui` (default: `2.51.1`)
 - `TEMPORAL_CORS_ORIGINS` — Allowed browser origins for the UI (set to your Coolify domain in production)
 
 > **Note:** `temporalio/auto-setup` also creates a `temporal_visibility` database automatically for advanced visibility queries.

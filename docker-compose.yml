@@ -19,7 +19,7 @@ services:
       start_period: 30s
 
   temporal:
-    image: temporalio/auto-setup:${TEMPORAL_VERSION:-1.25.2}
+    image: temporalio/auto-setup:${TEMPORAL_VERSION:-1.29.6}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -46,7 +46,7 @@ services:
       start_period: 60s
 
   temporal-ui:
-    image: temporalio/ui:${TEMPORAL_UI_VERSION:-2.32.0}
+    image: temporalio/ui:${TEMPORAL_UI_VERSION:-2.51.1}
     restart: unless-stopped
     depends_on:
       temporal:
@@ -68,7 +68,7 @@ services:
       start_period: 30s
 
   temporal-admin-tools:
-    image: temporalio/admin-tools:${TEMPORAL_VERSION:-1.25.2}
+    image: temporalio/admin-tools:${TEMPORAL_VERSION:-1.29.6}
     restart: unless-stopped
     depends_on:
       temporal:
