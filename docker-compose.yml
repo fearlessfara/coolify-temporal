@@ -30,8 +30,12 @@ services:
       POSTGRES_SEEDS: postgres
       POSTGRES_USER: ${POSTGRES_USER:-temporal}
       POSTGRES_PWD: ${POSTGRES_PASSWORD:-change-me-strong-password}
-      POSTGRES_DB: ${POSTGRES_DB:-temporal}
+      DBNAME: ${POSTGRES_DB:-temporal}
+      VISIBILITY_DBNAME: temporal_visibility
+      SKIP_DB_CREATE: ${SKIP_DB_CREATE:-false}
       DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/development-sql.yaml
+    volumes:
+      - ./dynamicconfig:/etc/temporal/config/dynamicconfig
     # INTERNAL ONLY: Temporal gRPC frontend (7233) — never publish to the host.
     # Workers and clients on the same Docker network reach this via temporal:7233.
     expose:

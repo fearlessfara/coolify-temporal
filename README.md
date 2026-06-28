@@ -264,6 +264,16 @@ If you publish this repository (GitHub, GitLab, etc.):
 - **Rotate any secrets** that were accidentally committed — treat them as compromised.
 - The [`.gitignore`](.gitignore) in this repo excludes `.env` by default; verify it is in place before your first push.
 
+## Troubleshooting
+
+### `development-sql.yaml: no such file or directory`
+
+The `temporal` service mounts [`dynamicconfig/development-sql.yaml`](dynamicconfig/development-sql.yaml) into the container. Ensure Coolify deploys the full repository (including the `dynamicconfig/` folder), not just `docker-compose.yml`.
+
+### `database "temporal_visibility" already exists` (Postgres logs)
+
+Harmless on restarts after the first deploy — auto-setup tries to create databases that already exist. Once Temporal starts successfully, you can set `SKIP_DB_CREATE=true` in Coolify to silence this on future restarts.
+
 ## Quick start (local)
 
 ```bash
