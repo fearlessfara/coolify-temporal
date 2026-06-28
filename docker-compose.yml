@@ -1,0 +1,90 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - temporal-network
+    # INTERNAL ONLY: PostgreSQL (5432) — not published to the host.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  temporal:
+    image: temporalio/auto-setup:${TEMPORAL_VERSION}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB: postgres12
+      DB_PORT: 5432
+      POSTGRES_SEEDS: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PWD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/development-sql.yaml
+    # INTERNAL ONLY: Temporal gRPC frontend (7233) — never publish to the host.
+    # Workers and clients on the same Docker network reach this via temporal:7233.
+    expose:
+      - "7233"
+    networks:
+      - temporal-network
+    healthcheck:
+      test: ["CMD", "tctl", "--address", "temporal:7233", "cluster", "health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  temporal-ui:
+    image: temporalio/ui:${TEMPORAL_UI_VERSION}
+    restart: unless-stopped
+    depends_on:
+      temporal:
+        condition: service_healthy
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_CORS_ORIGINS: ${TEMPORAL_CORS_ORIGINS:-http://localhost:8080}
+    # PUBLIC via Coolify/Traefik: map your domain to this container's port 8080.
+    # Do NOT add a host ports: mapping here — let Coolify proxy the route.
+    expose:
+      - "8080"
+    networks:
+      - temporal-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  temporal-admin-tools:
+    image: temporalio/admin-tools:${TEMPORAL_VERSION}
+    restart: unless-stopped
+    depends_on:
+      temporal:
+        condition: service_healthy
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_CLI_ADDRESS: temporal:7233
+    # INTERNAL ONLY: CLI container — no ports exposed; use docker compose exec.
+    stdin_open: true
+    tty: true
+    networks:
+      - temporal-network
+
+networks:
+  temporal-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
